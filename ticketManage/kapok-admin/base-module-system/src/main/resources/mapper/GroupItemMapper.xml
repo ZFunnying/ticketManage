@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cmit.kapok.system.service.item_group.mapper.GroupItemMapper">
+  <resultMap id="BaseResultMap" type="com.cmit.kapok.system.entity.item_group.GroupItem">
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="group_code" jdbcType="VARCHAR" property="groupCode" />
+    <result column="item_name" jdbcType="VARCHAR" property="itemName" />
+    <result column="item_code" jdbcType="VARCHAR" property="itemCode" />
+    <result column="sort" jdbcType="INTEGER" property="sort" />
+    <result column="remark" jdbcType="VARCHAR" property="remark" />
+  </resultMap>
+  <select id="findByGroupCode" resultMap="BaseResultMap">
+    select
+    *
+    from group_item t
+    where t.group_code=#{groupcode} and state=1 order by t.sort
+  </select>
+
+  <select id="queryItemBySort" resultMap="BaseResultMap">
+    select
+    *
+    from group_item t
+    where t.group_code=(select group_code from group_info where sort=#{sort}) order by t.sort
+  </select>
+
+  <resultMap id="ServiceTypeMap" type="java.util.HashMap">
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="service_type_name" jdbcType="VARCHAR" property="serviceTypeName" />
+  </resultMap>
+
+  <select id="queryServiceType" resultMap="ServiceTypeMap">
+    select distinct
+    g.id,
+    g.item_name as service_type_name
+    from group_item g
+    <where>
+      <if test="condition!=null and condition!=''">
+        AND g.item_name like concat('%',#{condition},'%')
+      </if>
+      and  g.state=1 and g.group_code='SERVICE_TYPE'
+    </where>
+  </select>
+
+</mapper>

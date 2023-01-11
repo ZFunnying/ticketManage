@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cmit.kapok.system.service.system_logger.mapper.LoggingEventMapper">
+  <resultMap id="BaseResultMap" type="com.cmit.kapok.system.entity.system_logger.LoggingEvent">
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="event_id" jdbcType="BIGINT" property="eventId" />
+    <result column="timestmp" jdbcType="BIGINT" property="timestmp" />
+    <result column="logger_name" jdbcType="VARCHAR" property="loggerName" />
+    <result column="level_string" jdbcType="VARCHAR" property="levelString" />
+    <result column="thread_name" jdbcType="VARCHAR" property="threadName" />
+    <result column="reference_flag" jdbcType="SMALLINT" property="referenceFlag" />
+    <result column="arg0" jdbcType="VARCHAR" property="arg0" />
+    <result column="arg1" jdbcType="VARCHAR" property="arg1" />
+    <result column="arg2" jdbcType="VARCHAR" property="arg2" />
+    <result column="arg3" jdbcType="VARCHAR" property="arg3" />
+    <result column="caller_filename" jdbcType="VARCHAR" property="callerFilename" />
+    <result column="caller_class" jdbcType="VARCHAR" property="callerClass" />
+    <result column="caller_method" jdbcType="VARCHAR" property="callerMethod" />
+    <result column="caller_line" jdbcType="CHAR" property="callerLine" />
+    <result column="formatted_message" jdbcType="LONGVARCHAR" property="formattedMessage" />
+  </resultMap>
+  <select id="findByParam" parameterType="java.util.Map" resultMap="BaseResultMap">
+    select
+    *
+    from
+    logging_event
+    <where>
+      <if test="params.startTime != null and params.endTime != null">
+        and timestmp &gt;= #{params.startTime} and timestmp &lt;= #{params.endTime}
+      </if>
+      <if test="params.levelString != null and params.levelString.size()>0">
+        AND level_string in
+        <foreach collection="params.levelString" item="item" index="index" open="(" close=")" separator=",">
+          #{item}
+        </foreach>
+      </if>
+      <if test="params.loggerName != null and params.loggerName != ''">
+        and logger_name like concat('%',#{params.loggerName},'%')
+      </if>
+      <if test="params.callerMethod != null and params.callerMethod != ''">
+        and caller_method like concat('%',#{params.callerMethod},'%')
+      </if>
+      <if test="params.formattedMessage != null and params.formattedMessage != ''">
+        and formatted_message like concat('%',#{params.formattedMessage},'%')
+      </if>
+    </where>
+    order by timestmp desc
+  </select>
+</mapper>

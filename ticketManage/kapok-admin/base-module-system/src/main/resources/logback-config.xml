@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--详细配置参见http://logback.qos.ch/manual/configuration.html-->
+<configuration debug="false">
+    <!--
+        引入其他xml文件,如果找不到指定的配置文件，logback会有所警告，可以通过设置optional="true"来忽略警告
+        The contents to include can be referenced as a file, as a resource, or as a URL.
+    -->
+    <include optional="true" resource="console-output.xml"/>
+
+    <!--特殊字母相关的转换器-->
+    <conversionRule conversionWord="clr"
+                    converterClass="org.springframework.boot.logging.logback.ColorConverter"/>
+    <conversionRule conversionWord="wex"
+                    converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter"/>
+    <conversionRule conversionWord="wEx"
+                    converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter"/>
+
+    <!-- 相当于String key=value; 定义参数，可以使用${key}的方式获得value值 -->
+    <property name="CONSOLE_LOG_PATTERN"
+              value="${CONSOLE_LOG_PATTERN:-%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(%5line){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
+    <property name="FILE_LOG_PATTERN"
+              value="${FILE_LOG_PATTERN:-%d{yyyy-MM-dd HH:mm:ss.SSS} ${LOG_LEVEL_PATTERN:-%5p} %5line --- [%20t] %-40.40logger{39} : %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
+
+    <!-- allow logging pattern override -->
+    <include optional="true" resource="logback-logging-pattern-override.xml"/>
+
+    <!-- Logback的appenders详细配置可以查看：https://logback.qos.ch/manual/appenders.html-->
+    <!-- 配置name为console的输出源为ConsoleAppender（输出到控制台） -->
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <!-- 设置该输出源的布局格式 -->
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!--输出到文件,会随着文件大小和时间的变化根据指定的策略对日志进行切分-->
+    <appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!---->
+        <file>logs/kapok-admin.log</file>
+        <!-- 定义日志文件大小及时间策略 -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>logs/kapok-admin.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <!-- each file should be at most 100MB, keep 60 days worth of history, but at most 20GB -->
+            <!-- 当每个文件的大小达到100MB的时候，会自动生成新的日志文件，日志文件最多保存60天，如果总日志大小超过10G的话，会删除旧的日志-->
+            <maxFileSize>100MB</maxFileSize>
+            <maxHistory>60</maxHistory>
+            <totalSizeCap>300MB</totalSizeCap>
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!--
+        通过ELK收集保存日志
+    -->
+    <!--<appender name="logstash" class="net.logstash.logback.appender.LogstashTcpSocketAppender">-->
+        <!--&lt;!&ndash; logstash 输入地址  与logstash.conf 配置文件的input对应&ndash;&gt;-->
+        <!--&lt;!&ndash; 我这里的logstash相对地址是192.168.10.128 端口是logstash.conf input配置的端口 &ndash;&gt;-->
+        <!--<destination>url</destination>-->
+        <!--<encoder charset="UTF-8" class="net.logstash.logback.encoder.LogstashEncoder" >-->
+            <!--<customFields>{"appname":"kapok-admin-log"}</customFields>-->
+        <!--</encoder>-->
+    <!--</appender>-->
+    <!-- 将日志写入数据库 -->
+    <!--<appender name="dblog" class="ch.qos.logback.classic.db.DBAppender">-->
+        <!--<connectionSource class="ch.qos.logback.constants.db.DataSourceConnectionSource">-->
+            <!--<dataSource class="org.apache.commons.dbcp.BasicDataSource">-->
+                <!--<driverClassName>com.mysql.jdbc.Driver</driverClassName>-->
+                <!--<url>jdbc:mysql://</url>-->
+                <!--<username></username>-->
+                <!--<password></password>-->
+            <!--</dataSource>-->
+        <!--</connectionSource>-->
+        <!--&lt;!&ndash;这里设置日志级别为error&ndash;&gt;-->
+        <!--<filter class="ch.qos.logback.classic.filter.ThresholdFilter">-->
+            <!--<level>info</level>-->
+        <!--</filter>-->
+    <!--</appender>-->
+    <!--
+        日志不仅仅可以保存在本地，还可以写到远程服务器
+        远程服务器需要安装及配置syslog服务（略）
+    -->
+    <!--<appender name="APP_SYSLOG" class="ch.qos.logback.classic.net.SyslogAppender">-->
+    <!--<syslogHost>${remote_ip}</syslogHost>-->
+    <!--<port>514</port>-->
+    <!--<facility>LOCAL1</facility>-->
+    <!--<suffixPattern>${FILE_LOG_PATTERN}</suffixPattern>-->
+    <!--</appender>-->
+
+    <!--
+        介绍：https://blog.windrunner.me/tool/sentry.html
+        需要使用Sentry的话可以引入面的依赖（略）
+        <dependency>
+            <groupId>io.sentry</groupId>
+            <artifactId>sentry-logback</artifactId>
+            <version>1.7.4</version>
+        </dependency>
+    -->
+    <!--<appender name="SENTRY_COLLECTOR" class="io.sentry.logback.SentryAppender">-->
+    <!--
+        http://logback.qos.ch/manual/filters.html#thresholdFilter
+        一个日志级别的阀值过滤器，只会打印出指定级别及以上的日志（该类的注释中写的）
+        例如指定level为WARN，那么只会打印出WARN和ERROR级别的日志
+    -->
+    <!--<filter class="ch.qos.logback.classic.filter.ThresholdFilter">-->
+    <!--<level>${sentry.level.threshold:-ERROR}</level>-->
+    <!--</filter>-->
+    <!--</appender>-->
+
+    <!-- allow additional logback settings -->
+    <include optional="true" resource="logback-overrides.xml"/>
+
+    <!-- 配置根日志记录器 -->
+    <root level="info">
+        <!-- 引用上面配置的appender -->
+        <appender-ref ref="console"/>
+        <appender-ref ref="file"/>
+        <!--<appender-ref ref="dblog" />-->
+        <!--<appender-ref ref="logstash" />-->
+        <!--<appender-ref ref="SENTRY_COLLECTOR"/>-->
+    </root>
+
+</configuration>

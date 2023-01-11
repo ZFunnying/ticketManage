@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cmit.kapok.system.service.sys_role.mapper.SysRoleMapper">
+  <resultMap id="BaseResultMap" type="com.cmit.kapok.system.entity.sys_role.SysRole">
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="role" jdbcType="VARCHAR" property="role" />
+    <result column="description" jdbcType="VARCHAR" property="description" />
+  </resultMap>
+  <resultMap id="ResultMap" type="java.util.Map">
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="role" jdbcType="VARCHAR" property="role" />
+    <result column="description" jdbcType="VARCHAR" property="description" />
+  </resultMap>
+  <select id="queryRolesByUserId" resultType="String">
+    select distinct
+    t.role
+    from sys_role t
+    where t.id in (select rel.role_id from user_role_rel rel,sys_user user where rel.user_id=user.id and user.id=#{id})
+  </select>
+
+  <select id="queryByCond" parameterType="java.util.Map" resultMap="ResultMap">
+    select
+    *
+    from sys_role t
+    <where>
+      <if test="param.role != null and param.role != '' ">
+        t.role = #{param.role}
+        or t.description = #{param.role}
+      </if>
+    </where>
+
+  </select>
+</mapper>
